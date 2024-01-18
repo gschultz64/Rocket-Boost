@@ -9,7 +9,9 @@ public class CollisionHandler : MonoBehaviour
     [SerializeField] private AudioClip crash;
     [SerializeField] private AudioClip finish;
 
-    AudioSource audioSource;
+    private AudioSource audioSource;
+
+    private bool isTransitioning = false;
 
     private void Start()
     {
@@ -18,6 +20,8 @@ public class CollisionHandler : MonoBehaviour
 
     private void OnCollisionEnter(Collision other)
     {
+        if (isTransitioning) { return; }
+
         switch (other.gameObject.tag)
         {
             case "Friendly":
@@ -32,34 +36,25 @@ public class CollisionHandler : MonoBehaviour
         }
     }
 
-    private void StartCrashSequence()
-    {
-        // TODO add particle effect on crash
-        GetComponent<Movement>().enabled = false;
-        if (!audioSource.isPlaying)
-        {
-            audioSource.PlayOneShot(crash);
-        }
-        else
-        {
-            audioSource.Stop();
-        }
-        Invoke(nameof(ReloadLevel), loadDelay);
-    }
-
     private void StartLoadSequence()
     {
         // TODO add particle effect on finish
+
+        isTransitioning = true;
+        audioSource.Stop();
+        audioSource.PlayOneShot(finish);
         GetComponent<Movement>().enabled = false;
-        if (!audioSource.isPlaying)
-        {
-            audioSource.PlayOneShot(finish);
-        }
-        else
-        {
-            audioSource.Stop();
-        }
         Invoke(nameof(LoadNextLevel), loadDelay);
+    }
+    private void StartCrashSequence()
+    {
+        // TODO add particle effect on crash
+
+        isTransitioning = true;
+        audioSource.Stop();
+        audioSource.PlayOneShot(crash);
+        GetComponent<Movement>().enabled = false;
+        Invoke(nameof(ReloadLevel), loadDelay);
     }
 
     private void ReloadLevel()
